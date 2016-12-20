@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>valiForm</title>
+</head>
+<body>
+	<form action="">
+		<input type="email" placeholder="Enter your e-mail" class="validate">
+		<span class="input-error"></span>
+		<input type="tel" placeholder="Enter your phone number" class="validate">
+		<span class="input-error"></span>
+	</form>
+</body>
+</html>
+
+<script
+			  src="https://code.jquery.com/jquery-1.12.4.js"
+			  integrity="sha256-Qw82+bXyGq6MydymqBxNPYTaUXXq7c8v3CwiYwLLNXU="
+			  crossorigin="anonymous"></script>
+
+<script>
+	valiForm('.validate');
+
+    // This is the easiest way to have default options.
+    var settings = $.extend({
+        // These are the defaults.
+        msgEmail: '<i>Not</i> a valid e-mail',
+	});
+	
+    /*
+	Validate E-mail function
+    */
+	function validateEmail(str){
+		var monkeyVer = str.split('@');
+
+		if (monkeyVer.length == 2) {
+			var dotVer = monkeyVer[1].split('.');
+			if (dotVer.length == 2 && dotVer[0].length > 1 && dotVer[1].length > 1) {
+				return 1;
+			} else {
+				return 0;
+			}
+		} else {
+			return 0;
+		}
+	}
+
+	function validate(fields) {
+		
+	}
+
+	/*
+	Remove white-space function
+	*/
+	function clean(str) {
+		var strClean = str.replace(/\s/,'');
+		return strClean;
+	}
+
+
+	function valiForm(fields) {
+
+		/*
+		Perform some formating on keypress event
+		*/
+		$(fields).keyup(function() {
+			var thisElement = $(this);
+
+			document.addEventListener("keyup", function(event) { // listen to events
+
+				// format the phone number
+				if(thisElement.attr('type') == 'tel') {
+					var digitPlaces = [];
+					var charArray = thisElement.val().split('');
+					var sanitizedInput = thisElement.val().replace(/[a-z,A-Z]/g,'');
+
+					thisElement.val(sanitizedInput);
+					
+
+					if (charArray[0] == '+') {
+						digitPlaces = [4,7,12];
+					} else {
+						digitPlaces = [3,7,12];
+					}
+
+					if(thisElement.val().length == digitPlaces[0] && event.keyCode != 8 || thisElement.val().length == digitPlaces[1] && event.keyCode != 8 || thisElement.val().length == digitPlaces[2] && event.keyCode != 8 ) {
+						thisElement.val(thisElement.val() + ' ');
+					}
+				} 
+			});
+
+		});
+
+		/*
+		Act on changed input
+		*/
+		$(fields).on('input',function(e){
+			$(this).next('span').html(''); // clear any error message
+
+			if ($(this).attr('type') == 'email') { // prevent user from entering spaces
+				$(this).val(clean($(this).val()));
+			}
+		});
+
+
+		/*
+		Validate different fields after the respective input field loses focus
+		*/
+		$(fields).blur(function(){
+
+			var value = $(this).val();
+			var type = $(this).attr('type');
+
+			$(this).val(value.trim());
+			
+
+			if (type == 'email') {
+				// validate e-mail
+				value = value.replace(/\s/g,'');
+				$(this).val(value);
+
+				if (validateEmail(value) == 0 && value.length > 0) {
+					$(this).next('span').html(settings.msgEmail);
+				}
+			} else if (type == 'tel') {
+				//validate phone number
+
+			} else {
+				// input type not recognized
+			}
+			
+		});
+		
+	}
+</script>
