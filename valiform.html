@@ -10,6 +10,8 @@
 		<span class="input-error"></span>
 		<input type="tel" placeholder="Enter your phone number" class="validate">
 		<span class="input-error"></span>
+		<input type="password" placeholder="Enter your password" class="validate">
+		<span class="input-error"></span>
 	</form>
 </body>
 </html>
@@ -26,6 +28,10 @@
     var settings = $.extend({
         // These are the defaults.
         msgEmail: '<i>Not</i> a valid e-mail',
+        msgTel: '<i>Not</i> a valid number',
+        pwdLen: 8,
+        msgPwdLen: 'Minimum {x} characters',
+        msgPwdSpace: 'No white space allowed.'
 	});
 	
     /*
@@ -46,8 +52,22 @@
 		}
 	}
 
-	function validate(fields) {
-		
+	/*
+	Function validate phone number
+	*/
+	function validateTel(str) {
+		if (str.length < 6) {
+			return 0;
+		}
+	}
+
+	/*
+	Function validate password
+	*/
+	function validatePwd(str) {
+		if (str.length < settings.pwdLen) {
+			return -1;
+		}
 	}
 
 	/*
@@ -73,9 +93,6 @@
 				if(thisElement.attr('type') == 'tel') {
 					var digitPlaces = [];
 					var charArray = thisElement.val().split('');
-					var sanitizedInput = thisElement.val().replace(/[a-z,A-Z]/g,'');
-
-					thisElement.val(sanitizedInput);
 					
 
 					if (charArray[0] == '+') {
@@ -98,8 +115,22 @@
 		$(fields).on('input',function(e){
 			$(this).next('span').html(''); // clear any error message
 
-			if ($(this).attr('type') == 'email') { // prevent user from entering spaces
+			if ($(this).attr('type') == 'email') { // prevent user from entering spaces [Email]
 				$(this).val(clean($(this).val()));
+				$(this).val($(this).val().replace(/[!#$%^&*)(=+`~,;:'"}{}\/?]/g,''));
+			} else if ($(this).attr('type') == 'tel' ) { // prevent user from entering letters [Phone]
+				$(this).val($(this).val().replace(/[a-z,A-Z]/g,''));
+			} else if ($(this).attr('type') == 'password' ) { // prevent user from entering space as pasword [Pasword]
+				var invalidChar = /\s/g;
+				var foundChars = $(this).val().match(invalidChar);
+				
+				if (foundChars != null) {
+					$(this).val($(this).val().replace(/\s\t/g,''));
+
+					$(this).next('span').html(settings.msgPwdSpace);					
+				}
+
+
 			}
 		});
 
@@ -111,6 +142,7 @@
 
 			var value = $(this).val();
 			var type = $(this).attr('type');
+			var errField = $(this).next('span');
 
 			$(this).val(value.trim());
 			
@@ -121,11 +153,20 @@
 				$(this).val(value);
 
 				if (validateEmail(value) == 0 && value.length > 0) {
-					$(this).next('span').html(settings.msgEmail);
+					errField.html(settings.msgEmail);
 				}
 			} else if (type == 'tel') {
-				//validate phone number
+				// validate phone number
 
+				if (validateTel(value) == 0 && value.length > 0) {
+					errField.html(settings.msgTel);
+				}
+			} else if (type == 'password'){
+				// validate password
+
+				if (validatePwd(value) == -1){
+					errField.html(settings.msgPwdLen.replace('{x}', settings.pwdLen));
+				}
 			} else {
 				// input type not recognized
 			}
