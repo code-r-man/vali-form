@@ -3,23 +3,35 @@
 <head>
 	<meta charset="UTF-8">
 	<title>valiForm</title>
+	
+	<style>
+		input {
+			display: block;
+		}
+	</style>
+
 </head>
 <body>
 	<form action="">
+		<input type="text" placeholder="Enter your first name" class="validate">
+		<span class="input-error"></span>
+		<input type="text" placeholder="Enter your last name" class="validate">
+		<span class="input-error"></span>
+		<textarea placeholder="Enter your message" type="text" class="validate"></textarea>
+		<span class="input-error"></span>
 		<input type="email" placeholder="Enter your e-mail" class="validate">
 		<span class="input-error"></span>
 		<input type="tel" placeholder="Enter your phone number" class="validate">
 		<span class="input-error"></span>
-		<input type="password" placeholder="Enter your password" class="validate">
+		<input type="password" placeholder="Enter your password" class="validate" name="main-pwd">
+		<span class="input-error"></span>
+		<input type="password" placeholder="Confirm your password" class="validate" name="conf-pwd">
 		<span class="input-error"></span>
 	</form>
 </body>
 </html>
 
-<script
-			  src="https://code.jquery.com/jquery-1.12.4.js"
-			  integrity="sha256-Qw82+bXyGq6MydymqBxNPYTaUXXq7c8v3CwiYwLLNXU="
-			  crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-1.12.4.js" integrity="sha256-Qw82+bXyGq6MydymqBxNPYTaUXXq7c8v3CwiYwLLNXU=" crossorigin="anonymous"></script>
 
 <script>
 	valiForm('.validate');
@@ -31,7 +43,10 @@
         msgTel: '<i>Not</i> a valid number',
         pwdLen: 8,
         msgPwdLen: 'Minimum {x} characters',
-        msgPwdSpace: 'No white space allowed.'
+        msgPwdSpace: 'No white space allowed.',
+        msgPwdMatch: "Passwords don't match",
+        msgTxtField: 'Minimum 4 characters',
+        submitDisable: true,
 	});
 	
     /*
@@ -120,18 +135,19 @@
 				$(this).val($(this).val().replace(/[!#$%^&*)(=+`~,;:'"}{}\/?]/g,''));
 			} else if ($(this).attr('type') == 'tel' ) { // prevent user from entering letters [Phone]
 				$(this).val($(this).val().replace(/[a-z,A-Z]/g,''));
-			} else if ($(this).attr('type') == 'password' ) { // prevent user from entering space as pasword [Pasword]
+			} else if ($(this).attr('name') == 'main-pwd') { // prevent user from entering space as pasword [Pasword]
 				var invalidChar = /\s/g;
 				var foundChars = $(this).val().match(invalidChar);
+
+				$("[name='conf-pwd']").val('');
+				$("[name='conf-pwd']").next('span').html('');
 				
 				if (foundChars != null) {
 					$(this).val($(this).val().replace(/\s\t/g,''));
 
 					$(this).next('span').html(settings.msgPwdSpace);					
 				}
-
-
-			}
+			} 
 		});
 
 
@@ -144,7 +160,7 @@
 			var type = $(this).attr('type');
 			var errField = $(this).next('span');
 
-			$(this).val(value.trim());
+			$(this).val(value.trim()); // trim the inputs
 			
 
 			if (type == 'email') {
@@ -161,12 +177,29 @@
 				if (validateTel(value) == 0 && value.length > 0) {
 					errField.html(settings.msgTel);
 				}
-			} else if (type == 'password'){
+			} else if (type == 'password' && value.length > 0  && $(this).attr('name') != 'conf-pwd'){
 				// validate password
-
 				if (validatePwd(value) == -1){
 					errField.html(settings.msgPwdLen.replace('{x}', settings.pwdLen));
 				}
+
+			} else if ($(this).attr('name') == 'conf-pwd') {
+				// check password match
+				var inputPwd = []
+
+				$("[type='password']").each(function(){
+					inputPwd.push($(this).val());
+				});
+
+				if (inputPwd[0] != inputPwd[1]) {
+					errField.html(settings.msgPwdMatch);
+				}
+			} else if (type == 'text') {
+				// check for general text type inputs (Name, Surname, Message)
+				if(value.length < 4 && value.length > 0) {
+					errField.html(settings.msgTxtField);
+				}
+
 			} else {
 				// input type not recognized
 			}
